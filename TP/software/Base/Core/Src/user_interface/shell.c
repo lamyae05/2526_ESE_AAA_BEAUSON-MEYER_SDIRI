@@ -6,6 +6,9 @@
  */
 
 #include "user_interface/shell.h"
+#include "motor_control/motor.h"
+
+#define CCR_MAX 4250
 
 h_shell_t hshell1;
 
@@ -25,7 +28,7 @@ h_shell_t hshell1;
  */
 static int is_character_valid(char c)
 {
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == ' ') || (c == '=');
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == ' ') || (c == '=')|| (c == '_');
 }
 
 static int is_string_valid(char* str)
@@ -104,6 +107,11 @@ void shell_init(h_shell_t* h_shell)
 
 	shell_add(h_shell, "help", sh_help, "Help");
 	shell_add(h_shell, "test", sh_test_list, "Test list");
+
+	shell_add(h_shell, "SETCCR", sh_set_ccr, "Set PWM CCR value (0-4250)");
+	shell_add(h_shell, "start", sh_start, "Start generation PWM à 50%");
+	shell_add(h_shell, "stop", sh_stop, "Stop generation des PWM");
+	shell_add(h_shell, "speed", sh_speed, "Set target speed with ramp (0-4250)");
 }
 
 /**
@@ -225,5 +233,76 @@ int shell_run(h_shell_t* h_shell)
 			}
 		}
 	}
+	return 0;
+}
+
+/**
+ * @brief Commande pour régler le rapport cyclique (CCR) des PWM
+ * Usage: SET_CCR <valeur_0_a_4250>
+ */
+static int sh_set_ccr(h_shell_t *h_shell, int argc, char **argv)
+{
+    int size;
+
+    // On vérifie les arguments
+    if (argc < 2) {
+        size = snprintf(h_shell->print_buffer, SHELL_PRINT_BUFFER_SIZE,
+                "Usage: SET_CCR <valeur 0-%d>\r\n", CCR_MAX);
+        h_shell->drv.transmit(h_shell->print_buffer, size);
+        return -1;
+    }
+
+    // On convertit le texte en entier
+    int val_ccr = atoi(argv[1]);
+
+    // Logique moteur
+    motor_set_ccr(val_ccr);
+
+    // Visu dans le terminal
+    size = snprintf(h_shell->print_buffer, SHELL_PRINT_BUFFER_SIZE,
+            "CCR definie : %d / %d\r\n", val_ccr, CCR_MAX);
+    h_shell->drv.transmit(h_shell->print_buffer, size);
+
+    return 0;
+}
+
+static int sh_start(h_shell_t* h_shell, int argc, char** argv)
+{
+    motor_start();
+    int size = snprintf(h_shell->print_buffer, SHELL_PRINT_BUFFER_SIZE, "Motor STARTED\r\n");
+    h_shell->drv.transmit(h_shell->print_buffer, size);
+    return 0;
+}
+
+static int sh_stop(h_shell_t* h_shell, int argc, char** argv)
+{
+    motor_stop();
+    int size = snprintf(h_shell->print_buffer, SHELL_PRINT_BUFFER_SIZE, "Motor STOPPED\r\n");
+    h_shell->drv.transmit(h_shell->print_buffer, size);
+    return 0;
+}
+
+static int sh_speed(h_shell_t* h_shell, int argc, char** argv)
+{
+	int size;
+
+	// On verifie l'argument
+	if (argc < 2)
+	{
+		size = snprintf(h_shell->print_buffer, SHELL_PRINT_BUFFER_SIZE, "Usage: speed <0-%d>\r\n", CCR_MAX);
+		h_shell->drv.transmit(h_shell->print_buffer, size);
+		return -1;
+	}
+
+    // On convertit le texte en entier
+	int target = atoi(argv[1]);
+
+	// Passage de la consigne au moteur (la rampe s'exécute automatiquement)
+	motor_set_speed(target);
+
+	// Confirmation sur le terminal
+	size = snprintf(h_shell->print_buffer, SHELL_PRINT_BUFFER_SIZE, "Target speed set to %d / %d\r\n", target, CCR_MAX);
+	h_shell->drv.transmit(h_shell->print_buffer, size);
+
 	return 0;
 }

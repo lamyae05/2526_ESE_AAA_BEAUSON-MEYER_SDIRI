@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "main.h"
 #include "stm32g4xx_hal.h"
 
@@ -120,5 +121,15 @@ int shell_add(h_shell_t* h_shell, char* string_func_code, shell_func_pointer_t p
  * @return Never returns, it's an infinite loop.
  */
 int shell_run(h_shell_t* h_shell);
+
+/**
+ * @brief Commande pour régler le rapport cyclique (CCR) des PWM
+ * Usage: SET_CCR <valeur_0_a_8499>
+ */
+static int sh_set_ccr(h_shell_t *h_shell, int argc, char **argv);
+
+static int sh_start(h_shell_t* h_shell, int argc, char** argv);
+static int sh_stop(h_shell_t* h_shell, int argc, char** argv);
+static int sh_speed(h_shell_t* h_shell, int argc, char** argv);
 
 #endif /* SHELL_H_ */

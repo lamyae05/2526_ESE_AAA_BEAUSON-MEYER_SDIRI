@@ -16,5 +16,6 @@ void loop();
 
 uint8_t shell_uart2_transmit(const char *pData, uint16_t size);
 uint8_t shell_uart2_receive(char *pData, uint16_t size);
+void HAL_SYSTICK_Callback(void);
 
 #endif /* INC_APP_H_ */
