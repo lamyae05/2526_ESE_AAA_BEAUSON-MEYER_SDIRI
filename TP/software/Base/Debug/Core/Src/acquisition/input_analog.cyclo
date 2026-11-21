@@ -1,0 +1,6 @@
+../Core/Src/acquisition/input_analog.c:21:6:analog_init	1
+../Core/Src/acquisition/input_analog.c:28:10:analog_read_raw_polling	2
+../Core/Src/acquisition/input_analog.c:39:7:analog_get_current	1
+../Core/Src/acquisition/input_analog.c:48:6:analog_start_dma	1
+../Core/Src/acquisition/input_analog.c:54:7:analog_get_current_dma	1
+../Core/Src/acquisition/input_analog.c:60:6:HAL_ADC_ConvCpltCallback	2

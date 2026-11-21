@@ -7,16 +7,20 @@
 
 #include "user_interface/shell.h"
 #include "motor_control/motor.h"
+#include "acquisition/input_analog.h"
 
-#define CCR_MAX 4250
 
 h_shell_t hshell1;
+
+static int sh_set_ccr(h_shell_t *h_shell, int argc, char **argv);
+static int sh_start(h_shell_t* h_shell, int argc, char** argv);
+static int sh_stop(h_shell_t* h_shell, int argc, char** argv);
+static int sh_speed(h_shell_t* h_shell, int argc, char** argv);
+static int sh_get_current(h_shell_t* h_shell, int argc, char** argv);
 
 /**
  * @brief Transmit function for shell driver using UART2
  */
-
-
 
 /**
  * @brief Checks if a character is valid for a shell command.
@@ -112,6 +116,7 @@ void shell_init(h_shell_t* h_shell)
 	shell_add(h_shell, "start", sh_start, "Start generation PWM à 50%");
 	shell_add(h_shell, "stop", sh_stop, "Stop generation des PWM");
 	shell_add(h_shell, "speed", sh_speed, "Set target speed with ramp (0-4250)");
+	shell_add(h_shell, "get_i", sh_get_current, "Read motor current");
 }
 
 /**
@@ -266,6 +271,10 @@ static int sh_set_ccr(h_shell_t *h_shell, int argc, char **argv)
     return 0;
 }
 
+/**
+ * @brief Commande pour générer les PWM
+ * Usage: start
+ */
 static int sh_start(h_shell_t* h_shell, int argc, char** argv)
 {
     motor_start();
@@ -274,6 +283,10 @@ static int sh_start(h_shell_t* h_shell, int argc, char** argv)
     return 0;
 }
 
+/**
+ * @brief Commande pour stopper la génération des PWM
+ * Usage: start
+ */
 static int sh_stop(h_shell_t* h_shell, int argc, char** argv)
 {
     motor_stop();
@@ -282,6 +295,10 @@ static int sh_stop(h_shell_t* h_shell, int argc, char** argv)
     return 0;
 }
 
+/**
+ * @brief Commande pour régler le rapport cyclique (CCR) des PWM avec une rampe
+ * Usage: speed <valeur_0_a_4250>
+ */
 static int sh_speed(h_shell_t* h_shell, int argc, char** argv)
 {
 	int size;
@@ -297,7 +314,7 @@ static int sh_speed(h_shell_t* h_shell, int argc, char** argv)
     // On convertit le texte en entier
 	int target = atoi(argv[1]);
 
-	// Passage de la consigne au moteur (la rampe s'exécute automatiquement)
+	// Passage de la consigne au moteur (execution de la rampe automatique)
 	motor_set_speed(target);
 
 	// Confirmation sur le terminal
@@ -305,4 +322,19 @@ static int sh_speed(h_shell_t* h_shell, int argc, char** argv)
 	h_shell->drv.transmit(h_shell->print_buffer, size);
 
 	return 0;
+}
+
+/**
+ * @brief Commande pour obtenir la mesure de courant via les ADC
+ * Usage: speed <valeur_0_a_4250>
+ */
+static int sh_get_current(h_shell_t* h_shell, int argc, char** argv)
+{
+    float current = analog_get_current_dma();
+
+    int size = snprintf(h_shell->print_buffer, SHELL_PRINT_BUFFER_SIZE,
+                        "Courant: %.3f A\r\n",current);
+    h_shell->drv.transmit(h_shell->print_buffer, size);
+
+    return 0;
 }

@@ -8,6 +8,8 @@
 #include "app.h"
 #include "user_interface/led.h"
 #include "user_interface/shell.h"
+#include "acquisition/input_analog.h"
+#include "motor_control/motor.h"
 
 static char shell_uart2_received_char;
 
@@ -27,13 +29,15 @@ void init_device(void){
 	//
 	// Initialisation motor control
 	// MOTOR
-	// motor_init();
+	motor_init();
 	// ASSERV (PID)
 	//	asserv_init();
 	//
 	// Initialisation data acquistion
 	// ANALOG INPUT
-	//	input_analog_init();
+	analog_init(); // initialisation ADC
+	analog_start_dma(); // Initialisation DMA pour l'ADC
+
 	// ENCODER INPUT
 	//	input_encoder_init();
 }

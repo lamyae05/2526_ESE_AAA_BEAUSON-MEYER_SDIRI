@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -26,7 +27,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "app.h"
-
+#include "motor_control/motor.h"
+#include "acquisition/input_analog.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -89,6 +91,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC2_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
@@ -96,15 +99,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+
   init_device();
-
-  // Démarrage des PWM du Timer 1
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // Channel 1
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1); // Channel 1 complementaire
-
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2); // Channel 2
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);// Channel 2 complementaire
-
 
   /* USER CODE END 2 */
 
@@ -187,6 +183,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
+
+  // Déclenchement de la rampe à chaque milliseconde
+  motor_update_ramp();
 
   /* USER CODE END Callback 1 */
 }
